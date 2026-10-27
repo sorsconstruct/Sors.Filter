@@ -78,7 +78,7 @@
     };
     $('.hero-call').each(function () { var fn = calls[$(this).data('call')]; if (fn) v.track(this, fn); });
 
-    var $hero = $('#hero'), ticking = false;
+    var $hero = $('#home'), ticking = false;
     $hero.on('mousemove', function (e) {
       var r = this.getBoundingClientRect();
       v.setPointer((e.clientX - r.left) / r.width * 2 - 1, (e.clientY - r.top) / r.height * 2 - 1);
