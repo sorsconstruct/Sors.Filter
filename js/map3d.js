@@ -57,11 +57,10 @@
     try {
       map = new ml.Map({
         container: el, style: CFG.map.style, center: CFG.company.coords, zoom: CFG.map.zoom,
-        pitch: CFG.map.pitch, bearing: CFG.map.bearing, maxPitch: 78, antialias: true, attributionControl: false
+        pitch: CFG.map.pitch, bearing: CFG.map.bearing, maxPitch: 78, antialias: true
       });
     } catch (e) { fallback(); return; }
 
-    map.addControl(new ml.AttributionControl({ compact: true }), 'bottom-right');
     map.addControl(new ml.NavigationControl({ visualizePitch: true }), 'top-left');
 
     var pin = document.createElement('div');
@@ -69,16 +68,22 @@
     pin.innerHTML = '<span>Sors HVAC</span><i></i><b></b>';
     new ml.Marker({ element: pin, anchor: 'bottom' }).setLngLat(CFG.company.coords).addTo(map);
 
-    var timer = root.setTimeout(function () { if (!loaded) fallback(); }, 12000);
+    // the flat map is only for a style that never arrives (blocked network, no WebGL);
+    // once the style is in, a missing tile or glyph is not fatal and the 3D map stays
+    var styleReady = false;
+    var timer = root.setTimeout(function () { if (!styleReady && !loaded) fallback(); }, 20000);
+    function ready() { styleReady = true; root.clearTimeout(timer); }
     function pad() {
-      if (!map.setPadding) return;
+      if (!map || !map.setPadding) return;
       var w = el.clientWidth;
       map.setPadding({ top: 0, bottom: 0, right: 0, left: w >= 576 ? Math.min(360, w * 0.5) : 0 });
     }
-    map.on('load', function () { loaded = true; root.clearTimeout(timer); pad(); });
-    $(root).on('resize', function () { if (loaded) pad(); });
-    map.on('error', function () { if (!loaded) { root.clearTimeout(timer); fallback(); } });
+    map.on('styledata', ready);
+    map.on('load', function () { loaded = true; ready(); pad(); });
+    map.on('error', function () { if (!styleReady && !loaded) { root.clearTimeout(timer); fallback(); } });
     map.on('movestart', function (e) { if (e.originalEvent) pausedUntil = performance.now() + 6000; });
+    $(root).on('resize', pad);
+    pad();
 
     bindTools();
     if (!reduced) root.requestAnimationFrame(tick);

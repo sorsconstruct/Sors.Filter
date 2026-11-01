@@ -14,18 +14,30 @@ window.SORS_CONFIG = {
     // true = no network calls, fake answers after a short delay. Also switchable with ?mock=1 in the URL.
     mock: false
   },
-
   company: {
-    streetEn: 'Mihail Doichev Street',
-    streetBg: 'ул. „Михаил Дойчев“',
-    cityEn: 'Byala, Varna, Bulgaria',
-    cityBg: 'гр. Бяла, обл. Варна',
+    streetEn: 'Mihail Doichev #21 Street',
+    streetBg: 'ул. „Михаил Дойчев №21“',
+    cityEn: 'Byala, Varna, Bulgaria, 9101',
+    cityBg: 'гр. Бяла, обл. Варна, 9101',
     phone: '+359 000 000 000',
     email: 'z.vmw@abv.bg',
     hoursEn: 'Mon–Fri 08:00–17:00',
     hoursBg: 'Пон–Пет 08:00–17:00',
     // [longitude, latitude] — approximate centre of Byala. Put the exact point of the factory here.
     coords: [27.887577,42.883705]
+  },
+  
+  company2: {
+    streetEn: 'N. Canov Street',
+    streetBg: 'ул. „Н. Цанов“',
+    cityEn: 'Byala, Varna, Bulgaria',
+    cityBg: 'гр. Бяла, обл. Варна',
+    phone: '+359 000 000 000',
+    email: 'info@karibi.com',
+    hoursEn: 'Mon–Fri 08:00–17:00',
+    hoursBg: 'Пон–Пет 08:00–17:00',
+    // [longitude, latitude] — approximate centre of Byala. Put the exact point of the factory here.
+    coords: [27.8833, 42.8667]
   },
 
   map: {
