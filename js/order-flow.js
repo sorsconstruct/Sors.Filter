@@ -212,17 +212,19 @@
 
 	let paramsOrder = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam) };
 
-    var created = order.id ? $.Deferred().resolve({ orderId: order.id, number: order.number }).promise() : API.createOrder(payload, paramsOrder);
+    var created = order.id ? $.Deferred().resolve({ orderId: order.id, number: order.number, datetime: datetime }).promise() : API.createOrder(payload, paramsOrder);
     created.done(function (res) {
-      order.id = res.orderId || res.id;
-      order.number = res.number || res.orderNumber || order.id;
+      order.id = 1; //res.orderId || res.id;
+      order.number = 1; // res.number || res.orderNumber || order.id;
+	  order.datetime = new Date().toISOString();
+
       if (!order.id)
 	  {
 		fail({ kind: 'server', message: '' }, 'order'); 
 		return;
 	  }
 
-	  let paramsPay = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam = getUrlParameter('m') || "PAY AIR FILTER"), orderId: order.id  };
+	  let paramsPay = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam = getUrlParameter('m') || "PAY AIR FILTER"), order: order  };
 
       API.payOrder(order.id, buildPayment(), paramsPay ).done(onPaid).fail(function (err) { fail(err, 'pay'); });
     }).fail(function (err) { fail(err, 'order'); });
