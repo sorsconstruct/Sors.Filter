@@ -210,14 +210,21 @@
 	var mParam = getUrlParameter('m') || "ORDER AIR FILTER";
 
 
-	let params = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam) };
+	let paramsOrder = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam) };
 
-    var created = order.id ? $.Deferred().resolve({ orderId: order.id, number: order.number }).promise() : API.createOrder(payload, params);
+    var created = order.id ? $.Deferred().resolve({ orderId: order.id, number: order.number }).promise() : API.createOrder(payload, paramsOrder);
     created.done(function (res) {
       order.id = res.orderId || res.id;
       order.number = res.number || res.orderNumber || order.id;
-      if (!order.id) { fail({ kind: 'server', message: '' }, 'order'); return; }
-      API.payOrder(order.id, buildPayment()).done(onPaid).fail(function (err) { fail(err, 'pay'); });
+      if (!order.id)
+	  {
+		fail({ kind: 'server', message: '' }, 'order'); 
+		return;
+	  }
+
+	  let paramsPay = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam = getUrlParameter('m') || "PAY AIR FILTER"), orderId: order.id  };
+
+      API.payOrder(order.id, buildPayment(), paramsPay ).done(onPaid).fail(function (err) { fail(err, 'pay'); });
     }).fail(function (err) { fail(err, 'order'); });
   }
 

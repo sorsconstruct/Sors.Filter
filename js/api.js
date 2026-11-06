@@ -119,7 +119,7 @@
 			return;
 		}
 		d.reject(err);
-		
+
 	});
 
     return d.promise();
@@ -270,8 +270,8 @@
     createOrder: function (payload, params) {
       return request('POST', 'log', payload, params, { 'Idempotency-Key': payload.reference });
     },
-    payOrder: function (orderId, payload) {
-      return request('POST', 'log', payload, { orderId: orderId });
+    payOrder: function (orderId, payload, params) {
+      return request('POST', 'log', payload, params /*{ orderId: orderId }*/ );
     },
 	log: function (params) {     
 	  return logRequest('POST', 'log', null, params);
