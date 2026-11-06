@@ -58,3 +58,9 @@ window.SORS_CONFIG = {
 
   legal: { terms: '#', privacy: '#' }
 };
+
+
+function getUrlParameter(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}

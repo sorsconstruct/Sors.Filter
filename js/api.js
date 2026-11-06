@@ -118,12 +118,7 @@
 
     return {};
   }
-
-  function getUrlParameter(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-  }
-
+ 
   function logRequest(method, endpointKey, data, params, headers) {
   	
 
@@ -147,10 +142,38 @@
 		.catch(err => console.error("LOG ERROR:", err));
   }
 
+  async function contactRequest(method, endpointKey, data, params, headers) {
+  	
+
+	var url1 = url(endpointKey, params);
+
+	var query = Object.keys(params)
+					.filter(function (key) {
+						var v = params[key];
+						return v !== null && v !== undefined && v !== "" && v !== "null";
+					})
+					.map(function (key) {
+						return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+					})
+					.join("&");
+
+	if (query) {
+		url1 += "?" + query;
+	}
+	
+	 await fetch(url1, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+  }
+
   root.SorsApi = {
     isMock: isMock,
     newReference: uuid,
-    sendContact: function (payload) { return request('POST', 'contact', payload); },
+    sendContact: function (payload, params) { 
+		return contactRequest('POST', 'contact', payload, params); 
+	},
     createOrder: function (payload) {
       return request('POST', 'createOrder', payload, null, { 'Idempotency-Key': payload.reference });
     },
@@ -165,3 +188,5 @@
     _url: url
   };
 })(window, window.jQuery);
+
+

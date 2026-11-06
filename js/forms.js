@@ -134,6 +134,8 @@
     }
   }
 
+  
+
   /* ───────────── contact form ───────────── */
   function initContact() {
     var $form = $('#contactForm');
@@ -166,12 +168,37 @@
       hideAlert($alert);
       if (!validate()) { showAlert($alert, t('err.fix')); return; }
       var data = {
-        name: $.trim($('#cName').val()), email: $.trim($('#cEmail').val()), phone: $.trim($('#cPhone').val()),
-        topic: $('#cTopic').val(), message: $.trim($('#cMessage').val()), consent: true,
-        website: $form.find('[name="website"]').val() || '', lang: I.lang
+        name: $.trim($('#cName').val()), 
+		email: $.trim($('#cEmail').val()), 
+		phone: $.trim($('#cPhone').val()),
+        topic: $('#cTopic').val(), 
+		message: $.trim($('#cMessage').val()), 
+		consent: true,
+        website: $form.find('[name="website"]').val() || '', 
+		lang: I.lang,
+		ts: new Date().toISOString(),
       };
       busy($btn, true, 'contact.sending');
-      API.sendContact(data).done(function () {
+
+  	  // company filter
+      // var cParam = getUrlParameter('c');
+
+      // sector filter
+      // var sParam = getUrlParameter('s');
+
+      // redirect from
+      var rParam = getUrlParameter('r') || "air.filter";
+
+      // cv id guid
+      var idParam = getUrlParameter('id');
+
+      // request access message
+      var mParam = getUrlParameter('m') || "CONTACT AIR FILTER";
+
+
+	  let params = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam) };
+
+      API.sendContact(data, params).done(function () {
         busy($btn, false, 'contact.sending');
         $form[0].reset();
         $form.prop('hidden', true);
