@@ -4,11 +4,12 @@ window.SORS_CONFIG = {
   brand: { name: 'Sors HVAC' },
 
   api: {
-    base: 'https://karibi.com/api/',
+    base: 'https://www.karibi.somee.com/api/',
     endpoints: {
       contact: 'contact',                     // POST  → send the contact form
       createOrder: 'orders',                  // POST  → create an order, returns orderId
-      pay: 'orders/{orderId}/payment'         // POST  → pay / start payment for that order
+      pay: 'orders/{orderId}/payment',        // POST  → pay / start payment for that order
+	  log: 'logging/log'
     },
     timeout: 20000,
     // true = no network calls, fake answers after a short delay. Also switchable with ?mock=1 in the URL.
