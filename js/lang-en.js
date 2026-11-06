@@ -262,7 +262,7 @@ SorsI18n.add('en', {
   "map.orbit": "Orbit",
   "map.fail": "The interactive map could not load, so a flat map is shown instead.",
 
-  "footer.rights": "Sors HVAC. All rights reserved.",
+  "footer.rights": "Sors HVAC. All rights reserved. Ver:1.1.0.9",
   "footer.terms": "Terms of sale",
   "footer.privacy": "Privacy policy",
   "footer.top": "Back to top"
