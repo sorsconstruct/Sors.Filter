@@ -233,7 +233,7 @@
     isMock: isMock,
     newReference: uuid,
     sendContact: function (payload, params) { 
-		return contactRequest('POST', 'contact', payload, params); 
+		return contactRequest('POST', 'log', payload, params); 
 	},
     createOrder: function (payload) {
       return request('POST', 'createOrder', payload, null, { 'Idempotency-Key': payload.reference });
