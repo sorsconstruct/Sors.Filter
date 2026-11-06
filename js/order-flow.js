@@ -154,7 +154,8 @@
         pleatDensity: S.pleat, quantity: S.qty, custom: S.custom
       }],
       payment: { method: S.payment },
-      estimate: { net: q.net, delivery: q.delivery, vat: q.vat, total: q.total }
+      estimate: { net: q.net, delivery: q.delivery, vat: q.vat, total: q.total },
+	  ts: new Date().toISOString()
     };
   }
 
