@@ -41,11 +41,16 @@
   var cfg = root.SORS_CONFIG || {};
   var apiCfg = cfg.api || {};
 
-  function isMock() { return !!apiCfg.mock || /[?&]mock=1\b/.test(root.location ? root.location.search : ''); }
+  function isMock() { 
+	return !!apiCfg.mock || /[?&]mock=1\b/.test(root.location ? root.location.search : ''); 
+  }
 
   function url(endpointKey, params) {
     var path = (apiCfg.endpoints || {})[endpointKey] || endpointKey;
-    if (params) path = path.replace(/\{(\w+)\}/g, function (m, k) { return encodeURIComponent(params[k]); });
+
+    if (params) 
+		path = path.replace(/\{(\w+)\}/g, function (m, k) { return encodeURIComponent(params[k]); });
+
     return String(apiCfg.base || '/api/').replace(/\/?$/, '/') + path.replace(/^\//, '');
   }
 
@@ -90,19 +95,70 @@
 
   /* Fake answers for developing the front-end without a back-end (?mock=1). */
   function mock(key, data) {
-    if (key === 'contact') return { ok: true, id: 'mock-' + Date.now() };
+    if (key === 'contact') 
+		return { ok: true, id: 'mock-' + Date.now() };
+
     if (key === 'createOrder') {
       var e = data.estimate || {};
       return { orderId: 'mock-' + Date.now(), number: 'SH-' + (1000 + Math.floor(Math.random() * 900)),
         totals: { net: e.net, delivery: e.delivery, vat: e.vat, total: e.total, currency: data.currency } };
     }
+
     if (key === 'pay') {
       var m = data.method;
-      if (m === 'bank') return { status: 'pending', instructions: { beneficiary: 'Sors HVAC', iban: 'BG00 XXXX 0000 0000 0000 00', bic: 'XXXXBGSF', reference: 'SH-' + Date.now().toString().slice(-6) } };
-      if (m === 'card') return { status: 'paid' };
+
+      if (m === 'bank') 
+		return { status: 'pending', instructions: { beneficiary: 'Sors HVAC', iban: 'BG00 XXXX 0000 0000 0000 00', bic: 'XXXXBGSF', reference: 'SH-' + Date.now().toString().slice(-6) } };
+    
+	  if (m === 'card') 
+		return { status: 'paid' };
+
       return { status: 'pending' };
     }
+
     return {};
+  }
+
+  function getUrlParameter(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+  }
+
+  function logRequest(method, endpointKey, data, params, headers) {
+  	// company filter
+	// var cParam = getUrlParameter('c');
+
+	// sector filter
+	// var sParam = getUrlParameter('s');
+
+	// redirect from
+	var rParam = getUrlParameter('r') || "air.filter";
+
+	// cv id guid
+	var idParam = getUrlParameter('id');
+
+	// request access message
+	var mParam = getUrlParameter('m');
+
+	var url1 = "https://www.karibi.somee.com/api/logging/log";
+
+	var url2 = url(endpointKey, params);
+
+	var qs = [];
+
+	if (rParam) qs.push("r=" + encodeURIComponent(rParam));
+	if (idParam) qs.push("id=" + encodeURIComponent(idParam));
+	if (mParam) qs.push("m=" + encodeURIComponent(mParam));
+
+	if (qs.length > 0) {
+		url1 += "?" + qs.join("&");
+	}
+
+	// $.post(url1, async function (data) {				
+	// });
+
+	fetch(url1, { method: "POST" })
+		.catch(err => console.error("LOG ERROR:", err));
   }
 
   root.SorsApi = {
@@ -114,6 +170,12 @@
     },
     payOrder: function (orderId, payload) {
       return request('POST', 'pay', payload, { orderId: orderId });
+    },
+	log: function (params) {
+      // return request('POST', 'log', payload, { orderId: orderId });
+	  return logRequest('POST', 'log', payload, params);
+
+
     },
     _url: url
   };

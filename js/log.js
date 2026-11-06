@@ -5,6 +5,9 @@
     // var cfg = root.SORS_CONFIG || {};
     // var apiCfg = cfg.api || {};
 
+	var API = root.SorsApi;
+	// API.log();
+
     function getUrlParameter(name) {
         const params = new URLSearchParams(window.location.search);
         return params.get(name);
@@ -162,29 +165,32 @@
         // request access message
         var mParam = getUrlParameter('m');
 
-        var url = "https://www.karibi.somee.com/api/logging/log";
+        // var url = "https://www.karibi.somee.com/api/logging/log";
 
-        var qs = [];
+        // var qs = [];
 
-        if (rParam) qs.push("r=" + encodeURIComponent(rParam));
-        if (idParam) qs.push("id=" + encodeURIComponent(idParam));
-        if (mParam) qs.push("m=" + encodeURIComponent(mParam));
+        // if (rParam) qs.push("r=" + encodeURIComponent(rParam));
+        // if (idParam) qs.push("id=" + encodeURIComponent(idParam));
+        // if (mParam) qs.push("m=" + encodeURIComponent(mParam));
 
-        if (qs.length > 0) {
-            url += "?" + qs.join("&");
-        }
+        // if (qs.length > 0) {
+        //     url += "?" + qs.join("&");
+        // }
 
         // $.post(url, async function (data) {				
         // });
 
-        fetch(url, { method: "POST" })
-            .catch(err => console.error("LOG ERROR:", err));
+        // fetch(url, { method: "POST" })
+        //    .catch(err => console.error("LOG ERROR:", err));
+
+		API.log( { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam) });
+
     }
 
 
 
-    $(function () {
-        log();
-         
-    });
+    // $(function () {
+    //     log();		         
+    // });
+
 })(window, window.jQuery);

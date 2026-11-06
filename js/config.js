@@ -6,9 +6,9 @@ window.SORS_CONFIG = {
   api: {
     base: 'https://www.karibi.somee.com/api/',
     endpoints: {
-      contact: 'contact',                     // POST  → send the contact form
-      createOrder: 'orders',                  // POST  → create an order, returns orderId
-      pay: 'orders/{orderId}/payment',        // POST  → pay / start payment for that order
+      contact: 'contact',                     // POST  → send the contact form	 
+      createOrder: 'orders',                  // POST  → create an order, returns orderId	   
+      pay: 'orders/{orderId}/payment',        // POST  → pay / start payment for that order	
 	  log: 'logging/log'
     },
     timeout: 20000,
