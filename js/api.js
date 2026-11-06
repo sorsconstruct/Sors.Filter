@@ -142,7 +142,7 @@
 		.catch(err => console.error("LOG ERROR:", err));
   }
 
-  async function contactRequest(method, endpointKey, data, params, headers) {
+  async function contactRequest2(method, endpointKey, data, params, headers) {
   	
 
 	var url1 = url(endpointKey, params);
@@ -166,6 +166,67 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
+  }
+
+  function contactRequest(method, endpointKey, data, params) {
+	var d = $.Deferred();
+
+	if (isMock()) {
+		setTimeout(function () { d.resolve(mock(endpointKey, data)); }, 900 + Math.random() * 600);
+		return d.promise();
+	}
+
+	var url1 = url(endpointKey, params);
+	var query = Object.keys(params || {})
+		.filter(function (key) {
+		var v = params[key];
+		return v !== null && v !== undefined && v !== "" && v !== "null";
+		})
+		.map(function (key) {
+		return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+		})
+		.join("&");
+	if (query) url1 += "?" + query;
+
+	var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+	var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, apiCfg.timeout || 20000) : null;
+
+	fetch(url1, {
+		method: method,
+		signal: ctrl ? ctrl.signal : undefined,
+		headers: {
+		"Content-Type": "application/json; charset=UTF-8",
+		"Accept-Language": (root.SorsI18n && root.SorsI18n.lang) || "en"
+		},
+		body: JSON.stringify(data)
+	})
+	.then(function (res) {
+		return res.text().then(function (text) {
+		var body = null;
+		try { body = text ? JSON.parse(text) : null; } catch (e) {}
+		if (res.ok) {
+			d.resolve(body || {});
+		} else {
+			d.reject({
+			status: res.status,
+			kind: "server",
+			message: (body && body.message) || "",
+			errors: (body && body.errors) || null
+			});
+		}
+		});
+	})
+	.catch(function (err) {
+		d.reject({
+		status: 0,
+		kind: err && err.name === "AbortError" ? "timeout" : "network",
+		message: "",
+		errors: null
+		});
+	})
+	.then(function () { if (timer) clearTimeout(timer); });
+
+	return d.promise();
   }
 
   root.SorsApi = {
