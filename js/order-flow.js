@@ -191,7 +191,27 @@
     payload.reference = order.reference;
 
     setBusy(true);
-    var created = order.id ? $.Deferred().resolve({ orderId: order.id, number: order.number }).promise() : API.createOrder(payload);
+
+
+    // company filter
+	// var cParam = getUrlParameter('c');
+
+	// sector filter
+	// var sParam = getUrlParameter('s');
+
+	// redirect from
+	var rParam = getUrlParameter('r') || "air.filter";
+
+	// cv id guid
+	var idParam = getUrlParameter('id');
+
+	// request access message
+	var mParam = getUrlParameter('m') || "ORDER AIR FILTER";
+
+
+	let params = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam) };
+
+    var created = order.id ? $.Deferred().resolve({ orderId: order.id, number: order.number }).promise() : API.createOrder(payload, params);
     created.done(function (res) {
       order.id = res.orderId || res.id;
       order.number = res.number || res.orderNumber || order.id;

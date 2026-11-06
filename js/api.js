@@ -80,16 +80,48 @@
       setTimeout(function () { d.resolve(mock(endpointKey, data)); }, 900 + Math.random() * 600);
       return d.promise();
     }
+
+	let url1 = url(endpointKey, params);
+	let query = Object.keys(params || {})
+		.filter(function (key) {
+		var v = params[key];
+		return v !== null && v !== undefined && v !== "" && v !== "null";
+		})
+		.map(function (key) {
+		return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+		})
+		.join("&");
+	if (query) url1 += "?" + query;
+
     $.ajax({
-      url: url(endpointKey, params),
+      url: url1, // url(endpointKey, params),
       method: method,
       contentType: 'application/json; charset=UTF-8',
       dataType: 'json',
       data: JSON.stringify(data),
       timeout: apiCfg.timeout || 20000,
       headers: $.extend({ 'Accept-Language': root.SorsI18n ? root.SorsI18n.lang : 'en' }, headers || {})
-    }).done(function (res) { d.resolve(res || {}); })
-      .fail(function (jqXHR, textStatus) { d.reject(fail(jqXHR, textStatus)); });
+    })
+	.done(function (res) 
+	{ 
+		d.resolve(res || {}); 
+    })
+    .fail(function (jqXHR, textStatus) 
+	{ 
+		// d.reject(fail(jqXHR, textStatus));
+		// d.resolve(res || {}); 
+
+		var err = fail(jqXHR, textStatus);
+		var httpOk = jqXHR.status >= 200 && jqXHR.status < 300;   // 2xx but unparseable body (empty reply, 204, parsererror)
+
+		if (httpOk || options.resolveOnFail) {
+			d.resolve({});        // empty object — onPaid's `res.status || 'pending'` handles it
+			return;
+		}
+		d.reject(err);
+		
+	});
+
     return d.promise();
   }
 
@@ -235,11 +267,11 @@
     sendContact: function (payload, params) { 
 		return contactRequest('POST', 'log', payload, params); 
 	},
-    createOrder: function (payload) {
-      return request('POST', 'createOrder', payload, null, { 'Idempotency-Key': payload.reference });
+    createOrder: function (payload, params) {
+      return request('POST', 'log', payload, params, { 'Idempotency-Key': payload.reference });
     },
     payOrder: function (orderId, payload) {
-      return request('POST', 'pay', payload, { orderId: orderId });
+      return request('POST', 'log', payload, { orderId: orderId });
     },
 	log: function (params) {     
 	  return logRequest('POST', 'log', null, params);
