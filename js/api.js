@@ -41,11 +41,16 @@
   var cfg = root.SORS_CONFIG || {};
   var apiCfg = cfg.api || {};
 
-  function isMock() { return !!apiCfg.mock || /[?&]mock=1\b/.test(root.location ? root.location.search : ''); }
+  function isMock() { 
+	return !!apiCfg.mock || /[?&]mock=1\b/.test(root.location ? root.location.search : ''); 
+  }
 
   function url(endpointKey, params) {
     var path = (apiCfg.endpoints || {})[endpointKey] || endpointKey;
-    if (params) path = path.replace(/\{(\w+)\}/g, function (m, k) { return encodeURIComponent(params[k]); });
+
+    if (params) 
+		path = path.replace(/\{(\w+)\}/g, function (m, k) { return encodeURIComponent(params[k]); });
+
     return String(apiCfg.base || '/api/').replace(/\/?$/, '/') + path.replace(/^\//, '');
   }
 
@@ -90,19 +95,56 @@
 
   /* Fake answers for developing the front-end without a back-end (?mock=1). */
   function mock(key, data) {
-    if (key === 'contact') return { ok: true, id: 'mock-' + Date.now() };
+    if (key === 'contact') 
+		return { ok: true, id: 'mock-' + Date.now() };
+
     if (key === 'createOrder') {
       var e = data.estimate || {};
       return { orderId: 'mock-' + Date.now(), number: 'SH-' + (1000 + Math.floor(Math.random() * 900)),
         totals: { net: e.net, delivery: e.delivery, vat: e.vat, total: e.total, currency: data.currency } };
     }
+
     if (key === 'pay') {
       var m = data.method;
-      if (m === 'bank') return { status: 'pending', instructions: { beneficiary: 'Sors HVAC', iban: 'BG00 XXXX 0000 0000 0000 00', bic: 'XXXXBGSF', reference: 'SH-' + Date.now().toString().slice(-6) } };
-      if (m === 'card') return { status: 'paid' };
+
+      if (m === 'bank') 
+		return { status: 'pending', instructions: { beneficiary: 'Sors HVAC', iban: 'BG00 XXXX 0000 0000 0000 00', bic: 'XXXXBGSF', reference: 'SH-' + Date.now().toString().slice(-6) } };
+    
+	  if (m === 'card') 
+		return { status: 'paid' };
+
       return { status: 'pending' };
     }
+
     return {};
+  }
+
+  function getUrlParameter(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+  }
+
+  function logRequest(method, endpointKey, data, params, headers) {
+  	
+
+	var url1 = url(endpointKey, params);
+
+	var query = Object.keys(params)
+					.filter(function (key) {
+						var v = params[key];
+						return v !== null && v !== undefined && v !== "" && v !== "null";
+					})
+					.map(function (key) {
+						return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+					})
+					.join("&");
+
+	if (query) {
+		url1 += "?" + query;
+	}
+	
+	fetch(url1, { method: method })
+		.catch(err => console.error("LOG ERROR:", err));
   }
 
   root.SorsApi = {
@@ -114,6 +156,11 @@
     },
     payOrder: function (orderId, payload) {
       return request('POST', 'pay', payload, { orderId: orderId });
+    },
+	log: function (params) {     
+	  return logRequest('POST', 'log', null, params);
+
+
     },
     _url: url
   };
