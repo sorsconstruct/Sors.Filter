@@ -41,11 +41,16 @@
   var cfg = root.SORS_CONFIG || {};
   var apiCfg = cfg.api || {};
 
-  function isMock() { return !!apiCfg.mock || /[?&]mock=1\b/.test(root.location ? root.location.search : ''); }
+  function isMock() { 
+	return !!apiCfg.mock || /[?&]mock=1\b/.test(root.location ? root.location.search : ''); 
+  }
 
   function url(endpointKey, params) {
     var path = (apiCfg.endpoints || {})[endpointKey] || endpointKey;
-    if (params) path = path.replace(/\{(\w+)\}/g, function (m, k) { return encodeURIComponent(params[k]); });
+
+    if (params) 
+		path = path.replace(/\{(\w+)\}/g, function (m, k) { return encodeURIComponent(params[k]); });
+
     return String(apiCfg.base || '/api/').replace(/\/?$/, '/') + path.replace(/^\//, '');
   }
 
@@ -75,46 +80,206 @@
       setTimeout(function () { d.resolve(mock(endpointKey, data)); }, 900 + Math.random() * 600);
       return d.promise();
     }
+
+	let url1 = url(endpointKey, params);
+	let query = Object.keys(params || {})
+		.filter(function (key) {
+		var v = params[key];
+		return v !== null && v !== undefined && v !== "" && v !== "null";
+		})
+		.map(function (key) {
+		return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+		})
+		.join("&");
+	if (query) url1 += "?" + query;
+
     $.ajax({
-      url: url(endpointKey, params),
+      url: url1, // url(endpointKey, params),
       method: method,
       contentType: 'application/json; charset=UTF-8',
       dataType: 'json',
       data: JSON.stringify(data),
       timeout: apiCfg.timeout || 20000,
       headers: $.extend({ 'Accept-Language': root.SorsI18n ? root.SorsI18n.lang : 'en' }, headers || {})
-    }).done(function (res) { d.resolve(res || {}); })
-      .fail(function (jqXHR, textStatus) { d.reject(fail(jqXHR, textStatus)); });
+    })
+	.done(function (res) 
+	{ 
+		d.resolve(res || {}); 
+    })
+    .fail(function (jqXHR, textStatus) 
+	{ 
+		// d.reject(fail(jqXHR, textStatus));
+		// d.resolve(res || {}); 
+
+		var err = fail(jqXHR, textStatus);
+		var httpOk = jqXHR.status >= 200 && jqXHR.status < 300;   // 2xx but unparseable body (empty reply, 204, parsererror)
+
+		if (httpOk || options.resolveOnFail) {
+			d.resolve({});        // empty object — onPaid's `res.status || 'pending'` handles it
+			return;
+		}
+		d.reject(err);
+
+	});
+
     return d.promise();
   }
 
   /* Fake answers for developing the front-end without a back-end (?mock=1). */
   function mock(key, data) {
-    if (key === 'contact') return { ok: true, id: 'mock-' + Date.now() };
+    if (key === 'contact') 
+		return { ok: true, id: 'mock-' + Date.now() };
+
     if (key === 'createOrder') {
       var e = data.estimate || {};
       return { orderId: 'mock-' + Date.now(), number: 'SH-' + (1000 + Math.floor(Math.random() * 900)),
         totals: { net: e.net, delivery: e.delivery, vat: e.vat, total: e.total, currency: data.currency } };
     }
+
     if (key === 'pay') {
       var m = data.method;
-      if (m === 'bank') return { status: 'pending', instructions: { beneficiary: 'Sors HVAC', iban: 'BG00 XXXX 0000 0000 0000 00', bic: 'XXXXBGSF', reference: 'SH-' + Date.now().toString().slice(-6) } };
-      if (m === 'card') return { status: 'paid' };
+
+      if (m === 'bank') 
+		return { status: 'pending', instructions: { beneficiary: 'Sors HVAC', iban: 'BG00 XXXX 0000 0000 0000 00', bic: 'XXXXBGSF', reference: 'SH-' + Date.now().toString().slice(-6) } };
+    
+	  if (m === 'card') 
+		return { status: 'paid' };
+
       return { status: 'pending' };
     }
+
     return {};
+  }
+ 
+  function logRequest(method, endpointKey, data, params, headers) {
+  	
+
+	var url1 = url(endpointKey, params);
+
+	var query = Object.keys(params)
+					.filter(function (key) {
+						var v = params[key];
+						return v !== null && v !== undefined && v !== "" && v !== "null";
+					})
+					.map(function (key) {
+						return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+					})
+					.join("&");
+
+	if (query) {
+		url1 += "?" + query;
+	}
+	
+	fetch(url1, { method: method })
+		.catch(err => console.error("LOG ERROR:", err));
+  }
+
+  async function contactRequest2(method, endpointKey, data, params, headers) {
+  	
+
+	var url1 = url(endpointKey, params);
+
+	var query = Object.keys(params)
+					.filter(function (key) {
+						var v = params[key];
+						return v !== null && v !== undefined && v !== "" && v !== "null";
+					})
+					.map(function (key) {
+						return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+					})
+					.join("&");
+
+	if (query) {
+		url1 += "?" + query;
+	}
+	
+	 await fetch(url1, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+  }
+
+  function contactRequest(method, endpointKey, data, params) {
+	var d = $.Deferred();
+
+	if (isMock()) {
+		setTimeout(function () { d.resolve(mock(endpointKey, data)); }, 900 + Math.random() * 600);
+		return d.promise();
+	}
+
+	var url1 = url(endpointKey, params);
+	var query = Object.keys(params || {})
+		.filter(function (key) {
+		var v = params[key];
+		return v !== null && v !== undefined && v !== "" && v !== "null";
+		})
+		.map(function (key) {
+		return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+		})
+		.join("&");
+	if (query) url1 += "?" + query;
+
+	var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+	var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, apiCfg.timeout || 20000) : null;
+
+	fetch(url1, {
+		method: method,
+		signal: ctrl ? ctrl.signal : undefined,
+		headers: {
+		"Content-Type": "application/json; charset=UTF-8",
+		"Accept-Language": (root.SorsI18n && root.SorsI18n.lang) || "en"
+		},
+		body: JSON.stringify(data)
+	})
+	.then(function (res) {
+		return res.text().then(function (text) {
+		var body = null;
+		try { body = text ? JSON.parse(text) : null; } catch (e) {}
+		if (res.ok) {
+			d.resolve(body || {});
+		} else {
+			d.reject({
+			status: res.status,
+			kind: "server",
+			message: (body && body.message) || "",
+			errors: (body && body.errors) || null
+			});
+		}
+		});
+	})
+	.catch(function (err) {
+		d.reject({
+		status: 0,
+		kind: err && err.name === "AbortError" ? "timeout" : "network",
+		message: "",
+		errors: null
+		});
+	})
+	.then(function () { if (timer) clearTimeout(timer); });
+
+	return d.promise();
   }
 
   root.SorsApi = {
     isMock: isMock,
     newReference: uuid,
-    sendContact: function (payload) { return request('POST', 'contact', payload); },
-    createOrder: function (payload) {
-      return request('POST', 'createOrder', payload, null, { 'Idempotency-Key': payload.reference });
+    sendContact: function (payload, params) { 
+		return contactRequest('POST', 'log', payload, params); 
+	},
+    createOrder: function (payload, params) {
+      return request('POST', 'log', payload, params, { 'Idempotency-Key': payload.reference });
     },
-    payOrder: function (orderId, payload) {
-      return request('POST', 'pay', payload, { orderId: orderId });
+    payOrder: function (orderId, payload, params) {
+      return request('POST', 'log', payload, params /*{ orderId: orderId }*/ );
+    },
+	log: function (params) {     
+	  return logRequest('POST', 'log', null, params);
+
+
     },
     _url: url
   };
 })(window, window.jQuery);
+
+

@@ -154,7 +154,8 @@
         pleatDensity: S.pleat, quantity: S.qty, custom: S.custom
       }],
       payment: { method: S.payment },
-      estimate: { net: q.net, delivery: q.delivery, vat: q.vat, total: q.total }
+      estimate: { net: q.net, delivery: q.delivery, vat: q.vat, total: q.total },
+	  ts: new Date().toISOString()
     };
   }
 
@@ -191,12 +192,41 @@
     payload.reference = order.reference;
 
     setBusy(true);
-    var created = order.id ? $.Deferred().resolve({ orderId: order.id, number: order.number }).promise() : API.createOrder(payload);
+
+
+    // company filter
+	// var cParam = getUrlParameter('c');
+
+	// sector filter
+	// var sParam = getUrlParameter('s');
+
+	// redirect from
+	var rParam = getUrlParameter('r') || "air.filter";
+
+	// cv id guid
+	var idParam = getUrlParameter('id');
+
+	// request access message
+	var mParam = getUrlParameter('m') || "ORDER AIR FILTER";
+
+
+	let paramsOrder = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam) };
+
+    var created = order.id ? $.Deferred().resolve({ orderId: order.id, number: order.number, datetime: datetime }).promise() : API.createOrder(payload, paramsOrder);
     created.done(function (res) {
-      order.id = res.orderId || res.id;
-      order.number = res.number || res.orderNumber || order.id;
-      if (!order.id) { fail({ kind: 'server', message: '' }, 'order'); return; }
-      API.payOrder(order.id, buildPayment()).done(onPaid).fail(function (err) { fail(err, 'pay'); });
+      order.id = 1; //res.orderId || res.id;
+      order.number = 1; // res.number || res.orderNumber || order.id;
+	  order.datetime = new Date().toISOString();
+
+      if (!order.id)
+	  {
+		fail({ kind: 'server', message: '' }, 'order'); 
+		return;
+	  }
+
+	  let paramsPay = { r: encodeURIComponent(rParam), id: encodeURIComponent(idParam), m:  encodeURIComponent(mParam = getUrlParameter('m') || "PAY AIR FILTER"), order: order  };
+
+      API.payOrder(order.id, buildPayment(), paramsPay ).done(onPaid).fail(function (err) { fail(err, 'pay'); });
     }).fail(function (err) { fail(err, 'order'); });
   }
 
