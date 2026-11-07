@@ -122,7 +122,14 @@ a { text-underline-offset: .2em; }
 .navbar { min-height: var(--nav-h); padding: 0; }
 .brand { display: inline-flex; align-items: center; gap: .6rem; color: #fff; text-decoration: none; font-family: var(--f-display); font-weight: 600; font-size: 1.05rem; letter-spacing: -.01em; }
 .brand:hover { color: #fff; }
-.brand-mark { width: 30px; height: 30px; color: var(--air); }
+
+/* .brand-mark { width: 30px; height: 30px; color: var(--air); } */
+.brand-mark { 
+  width: 30px; 
+  height: 30px; 
+  border-radius: 50%; /* Makes the image perfectly round */
+  object-fit: cover;  /* Prevents image stretching */
+}
 .navbar-nav { --bs-nav-link-padding-x: .85rem; gap: .1rem; }
 .nav-link { position: relative; color: var(--text-d) !important; font-weight: 500; }
 .nav-link::after { content: ""; position: absolute; left: .85rem; right: .85rem; bottom: .25rem; height: 2px; background: var(--air); transform: scaleX(0); transform-origin: left; transition: transform .3s var(--ease); }
